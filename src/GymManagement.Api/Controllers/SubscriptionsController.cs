@@ -3,6 +3,7 @@ using GymManagement.Application.Subscriptions.Queries;
 using GymManagement.Contracts.Subscriptions;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using DomainSubscriptionType = GymManagement.Domain.Subscriptions.SubscriptionType;
 
 namespace GymManagement.Api.Controllers;
 
@@ -21,7 +22,13 @@ public class SubscriptionsController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> CreateSubscription(CreateSubscriptionRequest request)
     {
-        var command = new CreateSubscriptionCommand(request.adminId, request.subscriptionType.ToString());
+        // Presentation layer is responsible for converting data from the presentation to business Enums in our domain layer
+        if (!DomainSubscriptionType.TryFromName(request.subscriptionType.ToString(), out var subscriptionType))
+        {
+            return Problem(statusCode: StatusCodes.Status400BadRequest, detail: "Invalid subscription type");
+        }
+
+        var command = new CreateSubscriptionCommand(request.adminId, subscriptionType);
 
         var createSubscriptionResult = await _mediator.Send(command);
 
@@ -39,7 +46,7 @@ public class SubscriptionsController : ControllerBase
         var getSubscriptionResult = await _mediator.Send(query);
 
         return getSubscriptionResult.MatchFirst(
-            subscription => Ok(new SubscriptionResponse(subscription.Id, Enum.Parse<SubscriptionType>(subscription.SubscriptionType!))),
+            subscription => Ok(new SubscriptionResponse(subscription.Id, Enum.Parse<SubscriptionType>(subscription.SubscriptionType.Name!))),
             error => Problem()
         );
     }

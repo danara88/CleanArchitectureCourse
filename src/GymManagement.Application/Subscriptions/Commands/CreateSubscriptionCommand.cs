@@ -9,5 +9,5 @@ namespace GymManagement.Application.Subscriptions.Commands
     /// </summary>
     /// <param name="AdminId"></param>
     /// <param name="SubscriptionType"></param>
-    public record CreateSubscriptionCommand(Guid AdminId, string SubscriptionType): IRequest<ErrorOr<Subscription>>;
+    public record CreateSubscriptionCommand(Guid adminId, SubscriptionType subscriptionType): IRequest<ErrorOr<Subscription>>;
 }
